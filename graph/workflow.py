@@ -33,7 +33,6 @@ from agents.executor import executor_node
 from agents.supervisor import supervisor_node, should_continue
 
 from tools.novita_integration import get_novita_client
-from tools.x_api import get_x_client
 from utils.safety import SafetyFilter
 
 logger = structlog.get_logger(__name__)
@@ -52,7 +51,7 @@ def build_supervisor_graph(
     """
     # Shared tool instances (injected into nodes that need them)
     novita = get_novita_client(config)
-    x_client = get_x_client(config)
+    # Note: x posting now uses centralized api from utils.api_clients (no per-graph x_client needed)
 
     # Tool node example (for future ReAct-style tool use inside agents)
     # For v1 we keep most tool use inside the agent functions for clarity.
@@ -81,7 +80,7 @@ def build_supervisor_graph(
         s, config=config, history_store=history_store, vector_store=vector_store
     ))
     workflow.add_node(AgentName.EXECUTOR.value, lambda s: executor_node(
-        s, config=config, x_client=x_client, history_store=history_store, safety=safety
+        s, config=config, history_store=history_store, safety=safety
     ))
 
     # Optional tool node (example for future expansion)

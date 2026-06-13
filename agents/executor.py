@@ -21,18 +21,18 @@ from typing import Any, Dict, List
 import structlog
 
 from graph.state import AgentState, ContentDraft
+from utils.api_clients import api
 
 logger = structlog.get_logger(__name__)
 
 
 def _post_to_x(
     draft: ContentDraft,
-    x_client: Any,
     dry_run: bool,
     history_store: Any,
 ) -> Dict[str, Any]:
-    """Actual or simulated X post."""
-    if dry_run or not x_client:
+    """Actual or simulated X post using centralized api."""
+    if dry_run:
         post_id = f"dry_{int(time.time())}"
         url = f"https://x.com/user/status/{post_id}"
         logger.info("dry_run_post", draft_id=draft.id, format=draft.format)
@@ -41,23 +41,23 @@ def _post_to_x(
     try:
         if draft.format == "thread" and draft.thread_parts:
             # Simplified: post first tweet + note the rest (real thread posting is more involved)
-            tweet = x_client.create_tweet(text=draft.thread_parts[0])
-            post_id = tweet.data["id"]
+            result = api.x_post_tweet(text=draft.thread_parts[0])
+            post_id = result["data"]["id"]
             url = f"https://x.com/i/web/status/{post_id}"
         else:
-            tweet = x_client.create_tweet(text=draft.text[:280])
-            post_id = tweet.data["id"]
+            result = api.x_post_tweet(text=draft.text[:280])
+            post_id = result["data"]["id"]
             url = f"https://x.com/i/web/status/{post_id}"
 
         # Attach media if we have local images (real impl would upload)
-        result = {
+        posted = {
             "id": post_id,
             "url": url,
             "platform": "x",
             "draft_id": draft.id,
             "posted_at": datetime.utcnow().isoformat(),
         }
-        return result
+        return posted
     except Exception as e:
         logger.error("x_post_failed", error=str(e), draft_id=draft.id)
         # In production: enqueue retry job
@@ -67,7 +67,6 @@ def _post_to_x(
 def executor_node(
     state: AgentState,
     config: Dict[str, Any],
-    x_client: Any,
     history_store: Any,
     safety: Any,
 ) -> AgentState:
@@ -97,7 +96,7 @@ def executor_node(
         result = None
         while attempt < max_retries:
             attempt += 1
-            result = _post_to_x(draft, x_client, dry_run, history_store)
+            result = _post_to_x(draft, dry_run, history_store)
             if "error" not in result:
                 break
             time.sleep(exec_cfg.get("rate_limit_backoff", 45) * attempt)
