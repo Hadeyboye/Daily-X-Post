@@ -19,6 +19,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Dict, List
 
+import os
 import structlog
 
 from graph.state import AgentState, ResearchSignal
@@ -42,10 +43,11 @@ def research_node(
     niche = state.niche.get("keywords", ["AI agents"])
     limit = research_cfg.get("x_trends_limit", 25)
 
-    # 1. X Trends (parallel-friendly — here sequential for simplicity)
+    # 1. X Trends (live if X keys present, otherwise high-quality signals)
+    has_x_keys = bool(os.getenv("X_BEARER_TOKEN") or os.getenv("X_ACCESS_TOKEN"))
     trend_signals: List[ResearchSignal] = []
     try:
-        raw_trends = fetch_x_trends(keywords=niche, limit=limit, mock=not bool(config.get("executor", {}).get("dry_run")))
+        raw_trends = fetch_x_trends(keywords=niche, limit=limit, mock=not has_x_keys)
         for t in raw_trends:
             sig = ResearchSignal(
                 source="x_trends",
@@ -58,19 +60,19 @@ def research_node(
         logger.warning("x_trends_failed", error=str(e))
         trend_signals.append(ResearchSignal(source="x_trends", content="Fallback: AI agents seeing massive adoption in production", score=0.75))
 
-    # 2. Semantic search on X (deeper context)
+    # 2. Semantic/keyword search on X (live data when keys present)
     try:
-        semantic = semantic_search_x(query=" ".join(niche[:3]), limit=research_cfg.get("semantic_search_limit", 15), mock=True)
+        semantic = semantic_search_x(query=" ".join(niche[:3]), limit=research_cfg.get("semantic_search_limit", 15), mock=not has_x_keys)
         for s in semantic:
             trend_signals.append(ResearchSignal(source="x_semantic", content=s.get("text", ""), score=s.get("relevance", 0.7)))
     except Exception:
         pass
 
-    # 3. Competitor analysis
+    # 3. Competitor analysis (live when keys)
     competitor_insights: List[str] = []
     for handle in state.niche.get("competitors", [])[:4]:
         try:
-            posts = analyze_competitor(handle, limit=research_cfg.get("competitor_posts_per_account", 8), mock=True)
+            posts = analyze_competitor(handle, limit=research_cfg.get("competitor_posts_per_account", 8), mock=not has_x_keys)
             for p in posts:
                 competitor_insights.append(f"{handle}: {p.get('text', '')[:180]} (likes={p.get('likes', 0)})")
         except Exception:

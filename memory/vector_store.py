@@ -30,15 +30,36 @@ class VectorStore:
         self.persist_dir = Path(persist_dir)
         self.persist_dir.mkdir(parents=True, exist_ok=True)
 
-        self.client = chromadb.PersistentClient(
-            path=str(self.persist_dir),
-            settings=Settings(anonymized_telemetry=False),
-        )
-        self.collection_name = f"{collection_prefix}_posts_v1"
-        self.collection = self.client.get_or_create_collection(
-            name=self.collection_name,
-            metadata={"hnsw:space": "cosine"},
-        )
+        try:
+            self.client = chromadb.PersistentClient(
+                path=str(self.persist_dir),
+                settings=Settings(anonymized_telemetry=False),
+            )
+            self.collection_name = f"{collection_prefix}_posts_v1"
+            self.collection = self.client.get_or_create_collection(
+                name=self.collection_name,
+                metadata={"hnsw:space": "cosine"},
+            )
+        except Exception as e:
+            # Chroma persist dir can get into a bad state (especially after
+            # crashes or version upgrades). For a dev/demo app we auto-recover
+            # by wiping the local vector db. This is safe because it's just
+            # cached research signals and past post embeddings.
+            logger.warning("chroma_persist_corrupted", error=str(e), action="wiping_persist_dir")
+            import shutil
+            shutil.rmtree(self.persist_dir, ignore_errors=True)
+            self.persist_dir.mkdir(parents=True, exist_ok=True)
+
+            self.client = chromadb.PersistentClient(
+                path=str(self.persist_dir),
+                settings=Settings(anonymized_telemetry=False),
+            )
+            self.collection_name = f"{collection_prefix}_posts_v1"
+            self.collection = self.client.get_or_create_collection(
+                name=self.collection_name,
+                metadata={"hnsw:space": "cosine"},
+            )
+
         logger.info("vector_store_ready", collection=self.collection_name, path=str(self.persist_dir))
 
     def add_texts(self, texts: List[str], metadatas: Optional[List[Dict]] = None, ids: Optional[List[str]] = None) -> List[str]:

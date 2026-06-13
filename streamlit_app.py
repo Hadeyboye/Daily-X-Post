@@ -1,27 +1,46 @@
 """
 streamlit_app.py
 
-Convenience entry point for Streamlit Community Cloud / sharing.
+Proper entry point for Streamlit Community Cloud and local `streamlit run`.
 
-This allows one-click deploy from GitHub without changing default settings.
-It simply bootstraps the full daily_x_posts dashboard.
+This file:
+- Sets up the Python path
+- Calls bootstrap() to initialize config, memory, graph, safety
+- Directly launches the dashboard UI (the full hero + demo + 7 tabs experience)
+
+This avoids CLI argument parsing and ensures the Streamlit page actually renders.
 """
 
 import sys
 from pathlib import Path
 
-# Make sure we can import local modules when deployed
+# Ensure local imports work when deployed on Streamlit Cloud or run from any cwd
 sys.path.insert(0, str(Path(__file__).parent))
 
-from main import launch_dashboard  # re-uses the same launch function
-# Note: main.py already contains the full bootstrap + launch_dashboard call
+# 1. Bootstrap (loads config, creates dirs, builds the LangGraph, inits Chroma/SQLite, etc.)
+from main import bootstrap
+bootstrap()
 
-# When Streamlit Cloud runs this file it will execute the top level of main
-# which detects the streamlit context and launches the UI.
-# We import to trigger any side effects if needed, but main.py is designed
-# to work directly.
+# 2. Pull the initialized singletons that launch_dashboard expects
+from main import (
+    CONFIG,
+    GRAPH,
+    VECTOR_STORE,
+    HISTORY_STORE,
+    SAFETY,
+    run_autonomy_cycle,
+    start_autonomy_scheduler,
+)
 
-if __name__ == "__main__":
-    # Fallback for direct python -m streamlit run streamlit_app.py
-    from main import cli_main
-    cli_main()
+# 3. Launch the actual dashboard (this contains all the st. calls, hero, demo button, tabs, etc.)
+from main import launch_dashboard
+
+launch_dashboard(
+    config=CONFIG,
+    graph=GRAPH,
+    vector_store=VECTOR_STORE,
+    history_store=HISTORY_STORE,
+    safety=SAFETY,
+    run_autonomy_cycle=run_autonomy_cycle,
+    start_scheduler=start_autonomy_scheduler,
+)

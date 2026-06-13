@@ -29,9 +29,13 @@ from typing import Any, Dict, Optional
 
 import structlog
 import yaml
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.interval import IntervalTrigger
 from dotenv import load_dotenv
+
+# APScheduler is only needed for the autonomous background loop.
+# We import it lazily inside start_autonomy_scheduler so that a pure-UI
+# run (e.g. Streamlit Cloud or `streamlit run`) does not hard-fail if the
+# package is temporarily missing. The full requirements.txt still lists it.
+
 
 # Local imports (ensure PYTHONPATH or run from root)
 sys.path.insert(0, str(Path(__file__).parent))
@@ -166,9 +170,29 @@ def run_autonomy_cycle(trigger: str = "scheduled") -> Dict[str, Any]:
         raise
 
 
-def start_autonomy_scheduler() -> BackgroundScheduler:
-    """Background scheduler for continuous operation."""
+def start_autonomy_scheduler():
+    """Background scheduler for continuous operation.
+
+    APScheduler is imported lazily here so that users who only want the
+    Streamlit UI (e.g. on Streamlit Cloud) are not forced to have the
+    package if they haven't run `pip install -r requirements.txt` yet.
+    """
     global SCHEDULER
+
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+        from apscheduler.triggers.interval import IntervalTrigger
+    except ImportError as e:
+        logger.error(
+            "apscheduler_not_installed",
+            msg="The 'apscheduler' package is required for autonomy/scheduler features. "
+                "Run: pip install apscheduler  or  pip install -r requirements.txt"
+        )
+        raise RuntimeError(
+            "apscheduler is not installed. "
+            "Install it with `pip install apscheduler` (or the full requirements.txt) "
+            "if you want to use --autonomy / background scheduling."
+        ) from e
 
     if SCHEDULER and SCHEDULER.running:
         return SCHEDULER

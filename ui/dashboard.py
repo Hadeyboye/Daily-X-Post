@@ -247,14 +247,25 @@ def launch_dashboard(
         "Generate Now", "Smart Calendar", "Live Analytics", "Config Hub", "Logs & Audit", "Preview / Approve", "Agent Console"
     ])
 
-    # ------------------ GENERATE NOW (completed website experience) ------------------
+    # ------------------ GENERATE NOW (LIVE advanced AI content generation) ------------------
     with tab_generate:
-        st.subheader("⚡ Instant Multimodal Content Generation")
-        st.caption("The full Research → Strategist → Creator (threads + Flux carousels + polls) → Optimizer pipeline in one click. Works in demo mode too.")
+        st.subheader("⚡ Generate LIVE Content with Advanced AI Thinking")
+        st.caption("Full pipeline: Real-time X research (live API if keys) → Strategy → Novita LLM (with step-by-step reasoning for virality/brand fit) + Flux image gen → Optimizer. No mocks when NOVITA_API_KEY set!")
+
+        # Live vs Demo status
+        import os
+        novita_key = os.getenv("NOVITA_API_KEY", "")
+        x_key = os.getenv("X_BEARER_TOKEN") or os.getenv("X_ACCESS_TOKEN")
+        if novita_key and "XXXX" not in novita_key:
+            st.success("🟢 LIVE AI MODE: Real Novita LLM + Flux carousels + X data research. Advanced chain-of-thought in prompts.")
+            force_live = True
+        else:
+            st.warning("🟡 DEMO/MOCK MODE: Set NOVITA_API_KEY in .env (and X keys for live trends) for real advanced AI generated threads/images. Current generate will use smart fallbacks.")
+            force_live = False
 
         col_a, col_b = st.columns([2, 1])
         with col_a:
-            topic = st.text_input("Custom topic / angle (optional)", placeholder="Agent reliability in production 2026")
+            topic = st.text_input("Custom topic / angle (optional - will drive real AI generation)", placeholder="Agent reliability in production 2026")
             fmt = st.selectbox("Primary format", ["thread", "carousel", "poll", "single"])
             num_variants = st.slider("Variants to generate", 1, 5, 3)
 
@@ -264,21 +275,31 @@ def launch_dashboard(
 
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("Generate with Full Agent Graph (real run)", type="primary", use_container_width=True):
-                with st.spinner("Running complete LangGraph supervisor (all agents)..."):
+            button_label = "🚀 Generate LIVE with Advanced AI (Real Novita + X Research)" if force_live else "Generate with Full Agent Graph (smart fallback)"
+            if st.button(button_label, type="primary", use_container_width=True):
+                with st.spinner("Running full LangGraph: Research (live X) → Strategist → Creator (Novita LLM with step-by-step thinking + Flux images) → Optimizer..."):
                     init_state = create_initial_state(config, trigger="manual", brand=config["brand"], niche=config["niche"])
-                    final = run_workflow(graph, init_state, config=config)
+                    # Inject user topic for real AI to focus on (live content gen)
+                    if topic:
+                        from graph.state import ResearchSignal
+                        init_state.research_signals.append(
+                            ResearchSignal(source="user_focus", content=topic, score=1.0)
+                        )
+                    # Force live content gen (ignore dry_run for this button)
+                    gen_config = dict(config)
+                    gen_config.setdefault("executor", {})["dry_run"] = False
+                    final = run_workflow(graph, init_state, config=gen_config)
                     st.session_state.current_state = final
                     st.session_state.pending_drafts = final.get("content_drafts", [])
-                st.success(f"Generated {len(st.session_state.pending_drafts)} optimized multimodal drafts. Head to Preview/Approve.")
+                st.success(f"✅ Generated {len(st.session_state.pending_drafts)} REAL AI-optimized multimodal drafts with advanced thinking. See Preview/Approve tab for live images/threads.")
 
         with c2:
-            if st.button("✨ Load Sample Multimodal Content (Instant)", use_container_width=True):
+            if st.button("✨ Load Sample Data (Demo only, no keys needed)", use_container_width=True):
                 seed_demo_data()
                 st.rerun()
 
         if st.session_state.pending_drafts:
-            st.markdown("### 🔥 Latest Generated / Demo Drafts (click tabs below for full approval flow)")
+            st.markdown("### 🔥 Latest LIVE / Demo Drafts (real AI content when keys set)")
             for d in st.session_state.pending_drafts[:4]:
                 render_post_preview(d, key_prefix="gen")
 

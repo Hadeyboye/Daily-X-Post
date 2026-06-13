@@ -110,14 +110,28 @@ def creator_node(
     except Exception:
         rag_examples = "Example: 'Most agent demos fail at step 4. Here's the architecture that actually ships.'"
 
-    base_topics = [
-        "Why most AI agent frameworks still fail in production (and the 3 fixes that work)",
-        "Inference cost dropped 18x in 9 months. What this means for builders in 2026",
-        "The hidden loop: how top 1% AI teams actually iterate on agents",
-    ]
+    # Support user_focus from live generate (for real custom AI content)
+    focus_topic = None
+    for sig in state.research_signals:
+        if getattr(sig, "source", "") == "user_focus":
+            focus_topic = getattr(sig, "content", None)
+            break
+
+    if focus_topic:
+        base_topics = [
+            focus_topic,
+            f"{focus_topic} - implications for 2026 builders",
+            f"{focus_topic} case study and predictions",
+        ]
+    else:
+        base_topics = [
+            "Why most AI agent frameworks still fail in production (and the 3 fixes that work)",
+            "Inference cost dropped 18x in 9 months. What this means for builders in 2026",
+            "The hidden loop: how top 1% AI teams actually iterate on agents",
+        ]
 
     for idx, topic in enumerate(base_topics[:3]):
-        # Generate thread text (via Novita LLM)
+        # Generate thread text (via Novita LLM with ADVANCED AI THINKING)
         prompt = f"""You are writing in this exact brand voice:
 
 {voice}
@@ -126,6 +140,12 @@ Use these successful past examples for style:
 {rag_examples}
 
 Topic: {topic}
+
+**ADVANCED AI THINKING (do this internally before writing):**
+Step 1: Analyze current X signals, virality factors (curiosity, utility, controversy, timeliness), audience pain points.
+Step 2: Ensure perfect brand voice fit, contrarian yet evidence-based angle, concrete examples/data.
+Step 3: Optimize hook for saves/replies, structure for readability, end with strong CTA/question.
+Step 4: Predict engagement lift and why this will outperform average content.
 
 Write a 7-part Twitter thread. 
 Rules:
@@ -151,15 +171,16 @@ Output ONLY the numbered tweets, one per line starting with 1/ 2/ etc.
                 "7/ What broke your last agent attempt? Reply below.",
             ]
 
-        # Image carousel prompts (Flux)
+        # Image carousel prompts (Flux) - real gen if live
         image_prompts = [
             f"Minimalist tech illustration: {topic.split(':')[0] if ':' in topic else topic}, dark background, cyan accents, professional 2026 aesthetic",
             "Clean data visualization showing inference cost collapse over 18 months",
             "Abstract representation of reliable agent loop with human oversight node",
         ]
         image_paths: List[str] = []
+        novita_enabled = getattr(novita, "enabled", False) if novita else False
         for i, p in enumerate(image_prompts):
-            if config.get("executor", {}).get("dry_run") or not novita:
+            if config.get("executor", {}).get("dry_run") or not novita_enabled:
                 image_paths.append(_generate_placeholder_image(p, i))
             else:
                 image_paths.append(_call_novita_image(novita, p, i))

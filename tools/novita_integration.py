@@ -48,7 +48,7 @@ class NovitaClient:
         **kwargs: Any,
     ) -> str:
         if not self.enabled:
-            # High-quality mock response for immediate usability
+            # High-quality mock response for immediate usability (no key)
             last = messages[-1]["content"][:120] if messages else "topic"
             return (
                 f"1/ {last} is reshaping how teams ship.\n"
@@ -57,9 +57,22 @@ class NovitaClient:
                 "4/ What problem are you solving with agents right now?"
             )
 
+        # Advanced AI thinking: prepend system prompt to force step-by-step reasoning on virality, trends, brand, engagement
+        system_msg = {
+            "role": "system",
+            "content": (
+                "You are a world-class AI strategist, viral content creator, and social media analyst. "
+                "Always think step-by-step internally (audience psychology, current X trends, brand voice alignment, "
+                "hook strength, data/evidence, contrarian angle, CTA effectiveness) before crafting your response. "
+                "Be specific, original, evidence-based, and optimized for high engagement (saves, replies, reposts). "
+                "Never be generic or hype without substance."
+            )
+        }
+        final_messages = [system_msg] + messages
+
         payload = {
             "model": model or self.default_model,
-            "messages": messages,
+            "messages": final_messages,
             "max_tokens": max_tokens,
             "temperature": temperature,
             **kwargs,
