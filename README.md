@@ -1,8 +1,44 @@
 # daily_x_posts
 
-**Autonomous AI Content CMO — 2026 Production Platform**
+**Autonomous AI Content CMO — 2026 Production Platform**  
+**🟢 FULL WEBSITE COMPLETE + READY TO GO LIVE**
 
 A self-improving, multi-agent LangGraph system that acts as your personal AI Chief Marketing Officer. It researches real-time X/Twitter signals, builds intelligent content calendars, generates high-engagement multimodal content (threads, carousels, short videos/GIFs, polls, memes), schedules and posts autonomously, measures true business impact, and continuously optimizes via reinforcement learning + self-critique.
+
+> **The beautiful full-featured Streamlit web app (hero landing + instant demo + all 7 professional tabs) is now complete and has been pushed to this repo.**
+
+---
+
+## 🚀 Make the Full Website LIVE (Public URL) — 60 seconds
+
+1. Go to https://share.streamlit.io and sign in with GitHub.
+2. Click **"New app"**.
+3. Select your repo: **Hadeyboye/Daily-X-Post**
+4. Set **Main file path** to `streamlit_app.py` (or `main.py`)
+5. Deploy.
+6. (Recommended) In the deployed app settings → **Secrets**, paste your keys from `.env` (NOVITA_API_KEY, X_*, etc.).
+
+Your complete autonomous AI CMO website will be live at something like:  
+**https://daily-x-post.streamlit.app**
+
+The "LOAD FULL DEMO" button gives an instant impressive live experience even without keys.
+
+---
+
+## Local Quick Start (after cloning)
+
+```powershell
+cd Daily-X-Post
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+playwright install chromium
+
+cp .env.example .env   # add your keys
+streamlit run streamlit_app.py     # or main.py
+```
+
+Open http://localhost:8501 — the hero + demo button makes it feel like a full production website immediately.
 
 > "The first AI that doesn't just generate tweets — it runs the entire content engine like an elite growth team."
 
