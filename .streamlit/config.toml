@@ -1,0 +1,16 @@
+[theme]
+base = "dark"
+primaryColor = "#00d2b8"      # Cyan / teal for AI/tech feel
+backgroundColor = "#0f1117"
+secondaryBackgroundColor = "#1a1d29"
+textColor = "#e6e6e6"
+font = "sans serif"
+
+[server]
+headless = true
+port = 8501
+enableCORS = false
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false

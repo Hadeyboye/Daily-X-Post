@@ -1,0 +1,109 @@
+# daily_x_posts .gitignore - Production ready
+
+# Environment & Secrets
+.env
+.env.*
+*.env
+secrets/
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.conda/
+
+# IDE & Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Testing & Coverage
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+htmlcov/
+
+# Logs & Runtime data
+logs/
+*.log
+data/
+chroma_db/
+outputs/
+*.db
+*.sqlite
+*.sqlite3
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Node / frontend (if ever added)
+node_modules/
+npm-debug.log*
+
+# Docker
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary uploads / generated media (keep structure but ignore content)
+outputs/*
+!outputs/.gitkeep
+
+# Chroma / vector (large binary)
+chroma_db/**
+
+# LangSmith / observability cache
+.langsmith/
+
+# Misc
+*.bak
+*.tmp
+todo.md
+TODO.md

@@ -25,39 +25,58 @@ def render_safety_banner(safety_score: float) -> None:
         st.error(f"Safety Score: {safety_score:.0%} — Blocked or major revision needed", icon="🛑")
 
 
-def render_post_preview(draft: ContentDraft, key_prefix: str = "") -> None:
-    """Rich preview card for a single draft (text + images + actions)."""
-    st.markdown(f"**{draft.format.value.upper()}** — Predicted Virality: **{draft.predicted_virality:.0%}**")
+def render_post_preview(draft: Any, key_prefix: str = "") -> None:
+    """Rich preview card for a single draft (text + images + actions). Works with both Pydantic models and plain dicts (demo mode)."""
+    # Support both model and dict (for demo data)
+    if hasattr(draft, "model_dump"):
+        d = draft.model_dump()
+    else:
+        d = draft if isinstance(draft, dict) else draft.__dict__
 
-    if draft.thread_parts:
+    fmt = d.get("format", "thread")
+    if isinstance(fmt, str):
+        fmt = fmt.upper()
+    else:
+        fmt = getattr(fmt, "value", str(fmt)).upper()
+
+    virality = d.get("predicted_virality", 0.7)
+    st.markdown(f"**{fmt}** — Predicted Virality: **{virality:.0%}**")
+
+    text = d.get("text", "")
+    thread_parts = d.get("thread_parts", [])
+    if thread_parts:
         with st.expander("Full Thread", expanded=True):
-            for i, part in enumerate(draft.thread_parts, 1):
+            for i, part in enumerate(thread_parts, 1):
                 st.markdown(f"**{i}/** {part}")
+    elif text:
+        st.text_area("Post text", text, height=140, key=f"{key_prefix}_text", disabled=True)
 
-    elif draft.text:
-        st.text_area("Post text", draft.text, height=140, key=f"{key_prefix}_text", disabled=True)
-
-    if draft.poll:
-        st.write("**Poll:**", draft.poll.get("question"))
-        for opt in draft.poll.get("options", []):
+    poll = d.get("poll")
+    if poll:
+        st.write("**Poll:**", poll.get("question"))
+        for opt in poll.get("options", []):
             st.write(f"• {opt}")
 
     # Images / Carousel
-    if draft.image_paths:
-        cols = st.columns(min(len(draft.image_paths), 4))
-        for idx, path in enumerate(draft.image_paths):
-            if Path(path).exists():
-                cols[idx % len(cols)].image(path, caption=f"Slide {idx+1}", use_column_width=True)
+    image_paths = d.get("image_paths", []) or []
+    if image_paths:
+        cols = st.columns(min(len(image_paths), 4))
+        for idx, path in enumerate(image_paths):
+            p = str(path)
+            if p and Path(p).exists():
+                cols[idx % len(cols)].image(p, caption=f"Slide {idx+1}", use_column_width=True)
             else:
-                cols[idx % len(cols)].write(f"🖼️ {Path(path).name}")
+                cols[idx % len(cols)].write(f"🖼️ Carousel image {idx+1}")
 
-    if draft.video_path:
-        st.video(draft.video_path)
+    if d.get("video_path"):
+        st.video(d.get("video_path"))
 
-    render_safety_banner(draft.safety_score)
+    safety = d.get("safety_score", 0.9)
+    render_safety_banner(safety)
 
-    if draft.revision_notes:
-        st.caption(f"Revision note: {draft.revision_notes}")
+    notes = d.get("revision_notes", "")
+    if notes:
+        st.caption(f"Revision note: {notes}")
 
 
 def render_metrics_chart(metrics: List[Dict[str, Any]]) -> None:
