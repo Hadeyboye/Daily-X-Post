@@ -64,7 +64,7 @@ def render_post_preview(draft: Any, key_prefix: str = "") -> None:
         for idx, path in enumerate(image_paths):
             p = str(path)
             if p and Path(p).exists():
-                cols[idx % len(cols)].image(p, caption=f"Slide {idx+1}", use_column_width=True)
+                cols[idx % len(cols)].image(p, caption=f"Slide {idx+1}", width="stretch")
             else:
                 cols[idx % len(cols)].write(f"🖼️ Carousel image {idx+1}")
 
