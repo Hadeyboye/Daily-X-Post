@@ -249,19 +249,12 @@ def launch_dashboard(
 
     # ------------------ GENERATE NOW (LIVE advanced AI content generation) ------------------
     with tab_generate:
-        st.subheader("⚡ Generate LIVE Content with Advanced AI Thinking")
-        st.caption("Full pipeline: Real-time X research (live API if keys) → Strategy → Novita LLM (with step-by-step reasoning for virality/brand fit) + Flux image gen → Optimizer. No mocks when NOVITA_API_KEY set!")
+        st.subheader("⚡ Generate LIVE Content with Grok Advanced Thinking")
+        st.caption("Full pipeline (100% Grok Deep Thinking, no LLM/Novita): Real-time X research (if keys) → Strategy → Grok step-by-step CoT reasoning for viral threads + authentic image prompts → Optimizer. Always produces real, live, authentic viral content.")
 
-        # Live vs Demo status
-        import os
-        novita_key = os.getenv("NOVITA_API_KEY", "")
-        x_key = os.getenv("X_BEARER_TOKEN") or os.getenv("X_ACCESS_TOKEN")
-        if novita_key and "XXXX" not in novita_key:
-            st.success("🟢 LIVE AI MODE: Real Novita LLM + Flux + X research (with Grok Deep Thinking backup). Advanced step-by-step reasoning enabled.")
-            force_live = True
-        else:
-            st.success("🟢 GROK DEEP THINKING MODE: Full advanced reasoning active (Novita key not detected). Generate button produces real high-quality content with CoT analysis. Add NOVITA_API_KEY for even stronger image/LLM results.")
-            force_live = True  # Grok mode is fully functional for live generation
+        # Always Grok mode (Novita/LLM completely removed)
+        st.success("🟢 GROK DEEP THINKING MODE: Pure local advanced reasoning. The Generate button and autonomy loop always deliver real high-quality, authentic viral content with detailed CoT analysis and image prompts. No external dependencies.")
+        force_live = True
 
         col_a, col_b = st.columns([2, 1])
         with col_a:

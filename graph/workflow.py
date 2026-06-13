@@ -32,7 +32,6 @@ from agents.analyst import analyst_node
 from agents.executor import executor_node
 from agents.supervisor import supervisor_node, should_continue
 
-from tools.novita_integration import get_novita_client
 from utils.safety import SafetyFilter
 
 logger = structlog.get_logger(__name__)
@@ -48,10 +47,10 @@ def build_supervisor_graph(
     Build and compile the full supervisor-orchestrated multi-agent graph.
 
     Returns a compiled LangGraph app ready for .invoke() / .stream().
+    All generation now uses pure Grok Deep Thinking (no external LLM).
     """
-    # Shared tool instances (injected into nodes that need them)
-    novita = get_novita_client(config)
-    # Note: x posting now uses centralized api from utils.api_clients (no per-graph x_client needed)
+    # Note: generation uses GrokDeepThink from utils/grok_deep_thinking (always available)
+    # x posting uses centralized api from utils.api_clients (no per-graph x_client needed)
 
     # Tool node example (for future ReAct-style tool use inside agents)
     # For v1 we keep most tool use inside the agent functions for clarity.
@@ -60,18 +59,18 @@ def build_supervisor_graph(
     # Create the graph
     workflow = StateGraph(AgentState)
 
-    # Register nodes
+    # Register nodes (no novita passed anymore)
     workflow.add_node(AgentName.SUPERVISOR.value, lambda s: supervisor_node(
         s, config=config, vector_store=vector_store, history_store=history_store, safety=safety
     ))
     workflow.add_node(AgentName.RESEARCH.value, lambda s: research_node(
-        s, config=config, vector_store=vector_store, novita=novita
+        s, config=config, vector_store=vector_store
     ))
     workflow.add_node(AgentName.STRATEGIST.value, lambda s: strategist_node(
         s, config=config, vector_store=vector_store, history_store=history_store
     ))
     workflow.add_node(AgentName.CREATOR.value, lambda s: creator_node(
-        s, config=config, novita=novita, vector_store=vector_store, safety=safety
+        s, config=config, vector_store=vector_store, safety=safety
     ))
     workflow.add_node(AgentName.OPTIMIZER.value, lambda s: optimizer_node(
         s, config=config, vector_store=vector_store, history_store=history_store

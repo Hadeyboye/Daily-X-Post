@@ -91,10 +91,12 @@ def _create_meme_fallback(text: str) -> str:
 def creator_node(
     state: AgentState,
     config: Dict[str, Any],
-    novita: Any,
     vector_store: Any,
     safety: SafetyFilter,
 ) -> AgentState:
+    """Creator node using ONLY Grok Deep Thinking for all content and visuals.
+    No external LLM/Novita.
+    """
     state.current_agent = "creator"  # type: ignore[assignment]
     state.iteration += 1
     state.add_audit("creator", "start", {"drafts_target": 4})
@@ -172,12 +174,15 @@ Output ONLY the numbered tweets, one per line starting with 1/ 2/ etc.
                 "7/ What broke your last agent attempt? Reply below.",
             ]
 
-        # Image carousel prompts (Flux) - real gen via central client if key present
-        image_prompts = [
-            f"Minimalist tech illustration: {topic.split(':')[0] if ':' in topic else topic}, dark background, cyan accents, professional 2026 aesthetic",
-            "Clean data visualization showing inference cost collapse over 18 months",
-            "Abstract representation of reliable agent loop with human oversight node",
-        ]
+        # Image carousel prompts - generated via Grok Deep Thinking for authentic viral appeal
+        if api and getattr(api, 'grok', None):
+            image_prompts = api.grok.generate_image_prompts(topic, "\n".join(parts))
+        else:
+            image_prompts = [
+                f"Minimalist tech illustration: {topic.split(':')[0] if ':' in topic else topic}, dark background, cyan accents, professional 2026 aesthetic",
+                "Clean data visualization showing inference cost collapse over 18 months",
+                "Abstract representation of reliable agent loop with human oversight node",
+            ]
         image_paths: List[str] = []
         try:
             for i, p in enumerate(image_prompts):

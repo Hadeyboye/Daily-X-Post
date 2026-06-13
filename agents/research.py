@@ -16,15 +16,16 @@ Uses Novita (or any LLM) for synthesis.
 
 from __future__ import annotations
 
+import os
 from datetime import datetime
 from typing import Any, Dict, List
 
-import os
 import structlog
 
 from graph.state import AgentState, ResearchSignal
 from graph.tools import fetch_x_trends, semantic_search_x, analyze_competitor
 from utils.api_clients import api as central_api
+from utils.grok_deep_thinking import grok_deep
 
 logger = structlog.get_logger(__name__)
 
@@ -33,9 +34,10 @@ def research_node(
     state: AgentState,
     config: Dict[str, Any],
     vector_store: Any,
-    novita: Any,
 ) -> AgentState:
-    """Main research node. Updates state with fresh signals and synthesis."""
+    """Main research node. Updates state with fresh signals and synthesis.
+    Uses only Grok Deep Thinking (no external LLM).
+    """
     state.current_agent = "research"  # type: ignore[assignment]
     state.iteration += 1
     state.add_audit("research", "start", {"trigger": state.trigger})
@@ -82,44 +84,17 @@ def research_node(
     state.research_signals.extend(trend_signals)
     state.competitor_insights = competitor_insights[:12]
 
-    # 4. LLM-powered synthesis (via Novita client)
-    synthesis_prompt = f"""You are an elite social media research analyst for {state.brand.get('name')}.
-
-Recent signals:
-{chr(10).join([f"- {s.content[:200]}" for s in state.research_signals[:10]])}
-
-Competitor moves:
-{chr(10).join(state.competitor_insights[:6])}
-
-Niche: {state.niche.get('primary')}
-
-Produce a tight 220-word strategic research brief with:
-1. Top 3 emerging angles with highest velocity/potential
-2. Sentiment summary
-3. One contrarian or surprising observation
-4. Recommended content themes for the next 48h
-
-Be specific and data-grounded. No generic advice.
-"""
-
+    # 4. Grok Deep Thinking synthesis (pure local, no external LLM)
     try:
-        if novita and getattr(novita, "enabled", False):
-            synthesis = novita.chat_completion(
-                messages=[{"role": "user", "content": synthesis_prompt}],
-                max_tokens=420,
-                temperature=0.65,
+        if central_api and central_api.grok:
+            synthesis = central_api.grok.generate_research_brief(
+                [s.content for s in state.research_signals],
+                state.competitor_insights,
+                state.niche.get("primary", "tech_ai"),
+                state.brand.get("name", "AetherLabs")
             )
         else:
-            # Grok Deep Thinking fallback - always produces high-quality, reasoned brief
-            if central_api and central_api.grok:
-                synthesis = central_api.grok.generate_research_brief(
-                    [s.content for s in state.research_signals],
-                    state.competitor_insights,
-                    state.niche.get("primary", "tech_ai"),
-                    state.brand.get("name", "AetherLabs")
-                )
-            else:
-                synthesis = "Top angles: Production reliability is still the blocker. Cost is dropping but evals are not. Builders want patterns that survive real users."
+            synthesis = "Top angles: Production reliability is still the blocker. Cost is dropping but evals are not. Builders want patterns that survive real users."
         state.research_insights = synthesis
     except Exception as e:
         logger.warning("research_synthesis_failed", error=str(e))
