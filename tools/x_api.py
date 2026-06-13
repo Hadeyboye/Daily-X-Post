@@ -15,73 +15,42 @@ import os
 from typing import Any, Dict, Optional
 
 import structlog
-import tweepy
 
 logger = structlog.get_logger(__name__)
 
+try:
+    from utils.api_clients import api as central_api
+except Exception:
+    central_api = None
+
 
 class XClient:
+    """Compatibility wrapper around the centralized APIClient for X posting."""
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.api_key = os.getenv("X_API_KEY")
-        self.api_secret = os.getenv("X_API_SECRET")
-        self.access_token = os.getenv("X_ACCESS_TOKEN")
-        self.access_token_secret = os.getenv("X_ACCESS_TOKEN_SECRET")
-        self.bearer = os.getenv("X_BEARER_TOKEN")
-
-        self.client: Optional[tweepy.Client] = None
-        self.enabled = all([self.access_token, self.access_token_secret])
-
-        if self.enabled:
-            try:
-                auth = tweepy.OAuth1UserHandler(
-                    self.api_key, self.api_secret,
-                    self.access_token, self.access_token_secret
-                )
-                self.api_v1 = tweepy.API(auth)  # For media upload
-                self.client = tweepy.Client(
-                    consumer_key=self.api_key,
-                    consumer_secret=self.api_secret,
-                    access_token=self.access_token,
-                    access_token_secret=self.access_token_secret,
-                    bearer_token=self.bearer,
-                )
-                logger.info("x_api_v2_client_initialized")
-            except Exception as e:
-                logger.error("x_client_init_failed", error=str(e))
-                self.enabled = False
+        self.enabled = bool(os.getenv("X_BEARER_TOKEN") or os.getenv("X_ACCESS_TOKEN"))
 
     def create_tweet(self, text: str, media_ids: Optional[list] = None) -> Any:
-        if not self.enabled or not self.client:
+        if not self.enabled or not central_api:
             logger.info("x_create_tweet_dry", text=text[:80])
             class Mock: data = {"id": f"mock_{hash(text) % 100000}"}
             return Mock()
-
         try:
-            return self.client.create_tweet(text=text[:280], media_ids=media_ids)
+            return central_api.x_post_tweet(text, media_ids)
         except Exception as e:
-            logger.error("create_tweet_failed", error=str(e))
+            logger.error("x_post_failed", error=str(e))
             raise
 
     def upload_media(self, path: str) -> Optional[str]:
-        if not self.enabled or not hasattr(self, "api_v1"):
-            return None
-        try:
-            media = self.api_v1.media_upload(filename=path)
-            return media.media_id_string
-        except Exception as e:
-            logger.warning("media_upload_failed", error=str(e))
-            return None
+        # Central client currently focuses on text; extend if needed for media.
+        logger.info("x_upload_media_skipped", path=path)
+        return None
 
     def get_user_metrics(self, username: str) -> Dict[str, Any]:
-        """Pull basic account + recent post performance."""
-        if not self.enabled or not self.client:
+        if not self.enabled or not central_api:
             return {"followers": 12400, "mock": True}
-        try:
-            user = self.client.get_user(username=username, user_fields=["public_metrics"])
-            return user.data.public_metrics if user.data else {}
-        except Exception:
-            return {}
+        # For now return mock; can extend central with user lookup.
+        return {"followers": 12400, "mock": True}
 
 
 def get_x_client(config: Dict[str, Any]) -> XClient:

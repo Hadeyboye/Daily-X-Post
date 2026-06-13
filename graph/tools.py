@@ -39,30 +39,21 @@ def fetch_x_trends(
     """
     if not mock:
         try:
-            import tweepy
-            import os
-            bearer = os.getenv("X_BEARER_TOKEN")
-            if bearer:
-                client = tweepy.Client(bearer_token=bearer)
-                query = " OR ".join(keywords) + " lang:en -is:retweet min_faves:5"
-                tweets = client.search_recent_tweets(
-                    query=query,
-                    max_results=min(limit, 100),
-                    tweet_fields=["public_metrics", "created_at"]
-                )
-                results = []
-                for t in (tweets.data or [])[:limit]:
-                    results.append({
-                        "id": str(t.id),
-                        "text": t.text,
+            from utils.api_clients import api as central_api
+            results = central_api.x_search_recent(" OR ".join(keywords) + " lang:en min_faves:5", max_results=min(limit, 50))
+            if results:
+                parsed = []
+                for t in results[:limit]:
+                    parsed.append({
+                        "id": t.get("id"),
+                        "text": t.get("text"),
                         "score": 0.85,
                         "source": "x_live_keyword",
-                        "timestamp": t.created_at.isoformat() if t.created_at else datetime.utcnow().isoformat(),
-                        "likes": getattr(t.public_metrics, 'like_count', 0) if t.public_metrics else 0,
+                        "timestamp": t.get("created_at"),
+                        "likes": t.get("public_metrics", {}).get("like_count", 0),
                     })
-                if results:
-                    logger.info("fetch_x_trends_live", count=len(results))
-                    return results
+                logger.info("fetch_x_trends_live", count=len(parsed))
+                return parsed
         except Exception as e:
             logger.warning("real_x_trends_failed_fallback", error=str(e))
 

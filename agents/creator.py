@@ -25,6 +25,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from graph.state import AgentState, ContentDraft, PostFormat
 from utils.safety import SafetyFilter
+from utils.api_clients import api as api_client
 
 logger = structlog.get_logger(__name__)
 
@@ -158,7 +159,7 @@ Rules:
 Output ONLY the numbered tweets, one per line starting with 1/ 2/ etc.
 """
         try:
-            thread_text = novita.chat_completion([{"role": "user", "content": prompt}], max_tokens=900, temperature=0.72)
+            thread_text = api_client.chat_completion([{"role": "user", "content": prompt}], max_tokens=900, temperature=0.72)
             parts = [p.strip() for p in thread_text.split("\n") if p.strip()][:7]
         except Exception:
             parts = [
@@ -171,19 +172,22 @@ Output ONLY the numbered tweets, one per line starting with 1/ 2/ etc.
                 "7/ What broke your last agent attempt? Reply below.",
             ]
 
-        # Image carousel prompts (Flux) - real gen if live
+        # Image carousel prompts (Flux) - real gen via central client if key present
         image_prompts = [
             f"Minimalist tech illustration: {topic.split(':')[0] if ':' in topic else topic}, dark background, cyan accents, professional 2026 aesthetic",
             "Clean data visualization showing inference cost collapse over 18 months",
             "Abstract representation of reliable agent loop with human oversight node",
         ]
         image_paths: List[str] = []
-        novita_enabled = getattr(novita, "enabled", False) if novita else False
-        for i, p in enumerate(image_prompts):
-            if config.get("executor", {}).get("dry_run") or not novita_enabled:
-                image_paths.append(_generate_placeholder_image(p, i))
-            else:
-                image_paths.append(_call_novita_image(novita, p, i))
+        try:
+            for i, p in enumerate(image_prompts):
+                if config.get("executor", {}).get("dry_run"):
+                    image_paths.append(_generate_placeholder_image(p, i))
+                else:
+                    url = api_client.generate_image(p)
+                    image_paths.append(url)
+        except Exception:
+            image_paths = [_generate_placeholder_image(p, i) for i, p in enumerate(image_prompts)]
 
         draft = ContentDraft(
             format=PostFormat.THREAD,
