@@ -1,0 +1,54 @@
+# daily_x_posts - Production requirements (Python 3.12+)
+# Autonomous AI Social Media Intelligence Platform
+# Compatible with Novita AI Sandbox / E2B
+
+# Core AI / Agent Framework
+langgraph>=0.2.50
+langchain>=0.3.0
+langchain-core>=0.3.0
+langsmith>=0.1.100  # Observability & tracing
+
+# LLM / Structured Outputs
+pydantic>=2.9.0
+pydantic-settings>=2.5.0
+
+# UI
+streamlit>=1.38.0
+plotly>=5.24.0
+pandas>=2.2.0
+
+# Data & Storage
+chromadb>=0.5.5
+python-dotenv>=1.0.1
+pyyaml>=6.0.2
+apscheduler>=3.10.4
+
+# X/Twitter + Browser Automation
+tweepy>=4.14.0
+playwright>=1.47.0
+
+# HTTP / Resilience
+requests>=2.32.0
+tenacity>=9.0.0
+httpx>=0.27.0
+
+# Logging & Utils
+structlog>=24.4.0
+python-json-logger>=2.0.7
+
+# Image / Multimodal fallback
+Pillow>=10.4.0
+
+# Analytics / Forecasting (light)
+scikit-learn>=1.5.0  # For simple predictive scoring / RL simulation
+numpy>=2.1.0
+
+# Dev / Testing (optional but included for completeness)
+pytest>=8.3.0
+pytest-asyncio>=0.24.0
+
+# Optional: Novita official if available (fallback to requests)
+# novita-sdk  # Uncomment if published / available in env
+
+# Note: For full video gen & advanced image models, ensure Novita AI keys + any sandbox GPU libs.
+# Playwright browsers: playwright install chromium  (run in Dockerfile)

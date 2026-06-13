@@ -1,0 +1,140 @@
+# daily_x_posts - Configuration (2026 Autonomous AI Content CMO)
+# This is the operational brain. Override via .env or UI Config Hub.
+# Optimized for high-velocity niches: tech/AI, finance, thought leadership.
+
+platform:
+  name: "daily_x_posts"
+  version: "1.0.0"
+  environment: "production"  # development | production | sandbox
+
+brand:
+  name: "AetherLabs"  # Change per user/brand
+  handle: "@aetherlabs"
+  voice: |
+    Professional yet witty. Thought-leader tone. Short, punchy sentences mixed with 
+    insightful analysis. Use data, contrarian takes, and actionable advice. 
+    Never hype without substance. Emojis sparingly (max 2 per post). 
+    End with a question or strong CTA when appropriate.
+  values:
+    - evidence-based
+    - contrarian but respectful
+    - builder mindset
+    - future-optimistic
+  forbidden:
+    - political partisanship
+    - medical advice
+    - financial advice without disclaimers
+    - hate speech / harassment
+
+niche:
+  primary: "tech_ai"  # tech_ai | fintech | creator_economy | general
+  keywords:
+    - "AI agents"
+    - "LangGraph"
+    - "multimodal AI"
+    - "autonomous systems"
+    - "AI product"
+    - "inference"
+    - "LLM"
+  competitors:
+    - "@levelsio"
+    - "@karpathy"
+    - "@ylecun"
+    - "@gdb"
+    - "@pmarca"
+
+research:
+  x_trends_limit: 25
+  semantic_search_limit: 15
+  web_search_enabled: true
+  competitor_posts_per_account: 8
+  sentiment_analysis: true
+  forecast_horizon_days: 7
+  sources:
+    - "x_semantic"
+    - "x_keyword"
+    - "hackernews"  # via scraping fallback
+    - "reddit"     # via scraping fallback
+
+content:
+  default_thread_length: 6
+  max_thread_length: 12
+  carousel_images: 4
+  include_poll_probability: 0.25
+  include_video_probability: 0.15
+  meme_probability: 0.10
+  viral_optimization: true
+  cta_variants:
+    - "What do you think?"
+    - "Thread below \u2192"
+    - "Reply with your take"
+    - "Save this for later"
+
+calendar:
+  posts_per_day: 3
+  best_times: ["08:30", "12:45", "17:15", "20:00"]  # local TZ
+  rest_days: ["Sunday"]  # light posting
+  campaign_length_days: 14
+  theme_rotation:
+    - "deep_dive"
+    - "contrarian_take"
+    - "tool_tutorial"
+    - "future_prediction"
+    - "case_study"
+    - "personal_story"
+
+optimizer:
+  rl_enabled: true
+  ab_test_fraction: 0.3
+  min_samples_for_learning: 12
+  engagement_weight: 0.45
+  reach_weight: 0.25
+  save_rate_weight: 0.15
+  reply_quality_weight: 0.15
+  self_critique_threshold: 0.65  # If predicted score below, revise or scrap
+
+analyst:
+  lookback_days: 30
+  roi_model: "simple"  # simple | advanced (future)
+  forecast_confidence: 0.8
+  growth_kpi: "followers_7d"
+
+executor:
+  dry_run: false  # Set true to simulate all posting
+  max_retries: 3
+  rate_limit_backoff: 60  # seconds
+  platforms: ["x"]  # x, linkedin, instagram (stubs)
+  browser_fallback: true
+  human_approval: true
+
+memory:
+  vector_top_k: 8
+  episodic_window: 50  # recent posts
+  use_graph_rag: false  # Future: knowledge graph
+
+supervisor:
+  max_iterations: 12
+  human_escalation_on: ["low_confidence", "safety_flag", "budget_exceeded"]
+  parallel_research: true
+
+safety:
+  enabled: true
+  blocked_keywords:
+    - "illegal"
+    - "scam"
+    - "pump and dump"
+    - "guaranteed returns"
+  max_toxicity: 0.15
+  require_disclaimer: ["finance", "health"]
+
+observability:
+  langsmith_enabled: true
+  log_structured: true
+  metrics_export: "sqlite"  # sqlite | prometheus (future)
+
+autonomy:
+  enabled: true
+  loop_interval_minutes: 45
+  max_concurrent_campaigns: 1
+  self_improve: true
+  experiment_fraction: 0.2  # Run creative experiments

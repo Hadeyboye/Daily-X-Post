@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  daily_x_posts:
+    build: .
+    container_name: daily_x_posts
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+      - ./chroma_db:/app/chroma_db
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app
+      - NOVITA_API_KEY=${NOVITA_API_KEY}
+      - X_ACCESS_TOKEN=${X_ACCESS_TOKEN}
+      # Add any sandbox GPU flags if needed:
+      # - NVIDIA_VISIBLE_DEVICES=all
+    # For Novita Sandbox GPU support (uncomment if your sandbox exposes):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    depends_on: []
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Optional: Chroma dedicated (currently embedded in app, but useful for scale)
+  # chroma:
+  #   image: chromadb/chroma:latest
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./chroma_db:/chroma/chroma
+
+  # Future: Redis for distributed scheduler / queue
+  # redis:
+  #   image: redis:7-alpine
+
+# Usage in Novita/E2B:
+#   docker compose up --build -d
+#   Access UI at http://localhost:8501
+#
+# Headless autonomy only (no UI):
+#   docker compose run --rm daily_x_posts python main.py --autonomy --loop
