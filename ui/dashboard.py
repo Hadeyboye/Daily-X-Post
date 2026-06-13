@@ -271,7 +271,13 @@ def launch_dashboard(
 
         with col_b:
             st.write("**Current brand voice (from config)**")
-            st.text_area("", value=config["brand"]["voice"][:280], height=120, disabled=True)
+            st.text_area(
+                "Brand voice",
+                value=config["brand"]["voice"][:280],
+                height=120,
+                disabled=True,
+                label_visibility="collapsed"
+            )
 
         c1, c2 = st.columns(2)
         with c1:
