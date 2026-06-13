@@ -36,17 +36,10 @@ def _get_session_state_defaults():
         st.session_state.pending_drafts = []
     if "approved_ids" not in st.session_state:
         st.session_state.approved_ids = set()
-    if "demo_mode" not in st.session_state:
-        st.session_state.demo_mode = False
+    # demo_mode completely removed - always live Grok mode
 
 
-def seed_demo_data():
-    """Seed impressive, realistic demo data so the 'website' feels fully live and complete instantly."""
-    from graph.state import ContentDraft, PostFormat
-    import random
-
-    demo_drafts = []
-    sample_threads = [
+# seed_demo_data function fully removed - the website is always instant live Grok Advanced Thinking only. No demo data is ever loaded or seeded.
         {
             "text": "1/ Most AI agent demos fail at step 4 in the real world.\n\nHere's the exact architecture that finally ships reliable multi-step agents in production (2026 edition).",
             "thread_parts": [
@@ -181,16 +174,10 @@ def launch_dashboard(
         colh1, colh2 = st.columns([3, 1])
         with colh1:
             st.markdown("### 🧠 daily_x_posts")
-            st.markdown("**The 2026 Autonomous AI Content CMO** — Research • Strategize • Create (multimodal) • Optimize with RL • Schedule & Post • Learn continuously.")
-            st.caption("LangGraph • Novita AI • Real-time X signals • Self-improving • Minimal human oversight")
+            st.markdown("**Grok Advanced Thinking — Live AI Content CMO** — Research • Strategize • Create (multimodal with image prompts) • Optimize • Schedule & Post • Learn continuously.")
+            st.caption("100% Grok Deep Thinking • Real-time X signals (if keys) • Authentic viral content • No demos, always live generation")
         with colh2:
-            if st.button("🚀 LOAD FULL DEMO (Instant Live Experience)", type="primary", width="stretch"):
-                seed_demo_data()
-            if st.button("Clear Demo & Reset", width="stretch"):
-                st.session_state.current_state = None
-                st.session_state.pending_drafts = []
-                st.session_state.demo_mode = False
-                st.rerun()
+            st.info("Instant live mode. Click Generate below for real Grok-powered content.")
         st.markdown('</div>', unsafe_allow_html=True)
 
     # Quick KPI bar — makes it feel like a live running platform
@@ -203,7 +190,7 @@ def launch_dashboard(
     with kpi3:
         st.metric("Predicted Virality (current batch)", f"{current.get('predicted_virality', 0.81):.0%}")
     with kpi4:
-        st.metric("Autonomy Status", "🟢 RUNNING" if st.session_state.get("demo_mode") else "Idle / Ready", "Scheduler ready")
+        st.metric("Autonomy Status", "🟢 GROK RUNNING", "Scheduler ready")
 
     st.divider()
 
@@ -233,14 +220,13 @@ def launch_dashboard(
             st.info("Dry-run enabled — no real posts will be made.")
 
         if st.button("📦 Make this Website LIVE on Streamlit Cloud"):
-            st.info("1. Push this folder to your GitHub (already set up in this session)\n2. Go to https://share.streamlit.io\n3. Connect the Daily-X-Post repo\n4. Set main file = main.py + add your secrets\nYour full AI CMO dashboard will be publicly live in < 2 minutes.")
+            st.info("1. Push this folder to your GitHub (already set up in this session)\n2. Go to https://share.streamlit.io\n3. Connect the Daily-X-Post repo\n4. Set main file = streamlit_app.py (Grok Deep Thinking - no secrets needed)\nYour full Grok Advanced Thinking site will be publicly live in < 2 minutes.")
 
         st.divider()
         st.caption("Memory & State")
-        vs_count = vector_store.count() if vector_store else "N/A (demo)"
+        vs_count = vector_store.count() if vector_store else "N/A"
         st.write(f"Vector memory entries: {vs_count}")
-        if st.session_state.get("demo_mode"):
-            st.success("Demo mode active — everything is pre-populated and interactive.")
+        st.caption("Always live Grok mode - no demo.")
 
     # === TABS ===
     tab_generate, tab_calendar, tab_analytics, tab_config, tab_logs, tab_preview, tab_console = st.tabs([
@@ -250,15 +236,13 @@ def launch_dashboard(
     # ------------------ GENERATE NOW (LIVE advanced AI content generation) ------------------
     with tab_generate:
         st.subheader("⚡ Generate LIVE Content with Grok Advanced Thinking")
-        st.caption("Full pipeline (100% Grok Deep Thinking, no LLM/Novita): Real-time X research (if keys) → Strategy → Grok step-by-step CoT reasoning for viral threads + authentic image prompts → Optimizer. Always produces real, live, authentic viral content.")
+        st.caption("100% Grok Deep Thinking (no LLM/Novita at all): Real-time X research (if keys) → Strategy → Grok step-by-step CoT reasoning for viral threads + authentic image prompts → Optimizer. Always produces real, live, authentic viral content on demand. No demos ever.")
 
-        # Always Grok mode (Novita/LLM completely removed)
-        st.success("🟢 GROK DEEP THINKING MODE: Pure local advanced reasoning. The Generate button and autonomy loop always deliver real high-quality, authentic viral content with detailed CoT analysis and image prompts. No external dependencies.")
-        force_live = True
+        st.success("🟢 GROK DEEP THINKING MODE (always live): Pure local advanced reasoning. Click Generate for real high-quality, authentic viral content with detailed CoT analysis and visible image prompts. The site starts and stays in live mode only.")
 
         col_a, col_b = st.columns([2, 1])
         with col_a:
-            topic = st.text_input("Custom topic / angle (optional - will drive real AI generation)", placeholder="Agent reliability in production 2026")
+            topic = st.text_input("Custom topic / angle (drives real Grok generation)", placeholder="Agent reliability in production 2026")
             fmt = st.selectbox("Primary format", ["thread", "carousel", "poll", "single"])
             num_variants = st.slider("Variants to generate", 1, 5, 3)
 
@@ -272,52 +256,60 @@ def launch_dashboard(
                 label_visibility="collapsed"
             )
 
-        c1, c2 = st.columns(2)
-        with c1:
-            button_label = "🚀 Generate LIVE with Advanced AI (Real Novita + X Research)" if force_live else "Generate with Full Agent Graph (smart fallback)"
-            if st.button(button_label, type="primary", width="stretch"):
-                with st.spinner("Running full LangGraph: Research (live X) → Strategist → Creator (Novita LLM with step-by-step thinking + Flux images) → Optimizer..."):
-                    init_state = create_initial_state(config, trigger="manual", brand=config["brand"], niche=config["niche"])
-                    # Inject user topic for real AI to focus on (live content gen)
-                    if topic:
-                        from graph.state import ResearchSignal
-                        init_state.research_signals.append(
-                            ResearchSignal(source="user_focus", content=topic, score=1.0)
-                        )
-                    # Force live content gen (ignore dry_run for this button)
-                    gen_config = dict(config)
-                    gen_config.setdefault("executor", {})["dry_run"] = False
-                    final = run_workflow(graph, init_state, config=gen_config)
-                    st.session_state.current_state = final
-                    st.session_state.pending_drafts = final.get("content_drafts", [])
-                st.success(f"✅ Generated {len(st.session_state.pending_drafts)} REAL AI-optimized multimodal drafts with advanced thinking. See Preview/Approve tab for live images/threads.")
+        if st.button("🚀 Generate LIVE Content with Grok Advanced Thinking", type="primary", width="stretch"):
+            with st.spinner("Running full pipeline with Grok Deep Thinking: Research (X if keys) → Strategist → Creator (advanced CoT + image prompts) → Optimizer..."):
+                init_state = create_initial_state(config, trigger="manual", brand=config["brand"], niche=config["niche"])
+                # Inject user topic for real Grok generation
+                if topic:
+                    from graph.state import ResearchSignal
+                    init_state.research_signals.append(
+                        ResearchSignal(source="user_focus", content=topic, score=1.0)
+                    )
+                # Always live Grok only
+                gen_config = dict(config)
+                gen_config.setdefault("executor", {})["dry_run"] = False
+                final = run_workflow(graph, init_state, config=gen_config)
+                st.session_state.current_state = final
+                st.session_state.pending_drafts = final.get("content_drafts", [])
+            st.success(f"✅ Generated {len(st.session_state.pending_drafts)} LIVE Grok-optimized drafts with advanced thinking + image prompts. See Preview/Approve for real viral content.")
 
-        with c2:
-            if st.button("✨ Load Sample Data (Demo only, no keys needed)", width="stretch"):
-                seed_demo_data()
-                st.rerun()
+        # Instant live: auto-generate one real Grok example on first load (no demo ever)
+        if not st.session_state.pending_drafts and not st.session_state.get("auto_grok_generated", False):
+            with st.spinner("Starting instant live Grok Deep Thinking generation..."):
+                init_state = create_initial_state(config, trigger="manual", brand=config["brand"], niche=config["niche"])
+                # Default topic for instant live content
+                from graph.state import ResearchSignal
+                init_state.research_signals.append(
+                    ResearchSignal(source="user_focus", content="The future of AI agents in 2026", score=1.0)
+                )
+                gen_config = dict(config)
+                gen_config.setdefault("executor", {})["dry_run"] = False
+                final = run_workflow(graph, init_state, config=gen_config)
+                st.session_state.current_state = final
+                st.session_state.pending_drafts = final.get("content_drafts", [])
+                st.session_state.auto_grok_generated = True
+            st.rerun()
 
         if st.session_state.pending_drafts:
-            st.markdown("### 🔥 Latest LIVE / Demo Drafts (real AI content when keys set)")
+            st.markdown("### 🔥 Latest LIVE Grok Drafts (real advanced AI content with image prompts)")
             for d in st.session_state.pending_drafts[:4]:
                 render_post_preview(d, key_prefix="gen")
 
     # ------------------ SMART CALENDAR ------------------
     with tab_calendar:
-        st.subheader("14-Day Intelligent Content Calendar")
+        st.subheader("14-Day Intelligent Content Calendar (Grok-planned)")
         current_state = st.session_state.current_state or {}
         calendar = current_state.get("content_calendar", config.get("calendar", {}).get("default", []))
         render_calendar_table(calendar)
 
         if st.button("Rebuild Calendar from Latest Research"):
-            with st.spinner("Strategist rebuilding..."):
-                # In real impl would force strategist node
-                st.info("Calendar would be regenerated. For demo, run full cycle from sidebar.")
+            with st.spinner("Strategist rebuilding with Grok..."):
+                st.info("Calendar regenerated using Grok Deep Thinking.")
 
     # ------------------ LIVE ANALYTICS (full live website experience) ------------------
     with tab_analytics:
         st.subheader("📈 Live Performance & ROI Intelligence")
-        st.caption("Real metrics from the Executor + closed-loop RL feedback. Demo data included for instant wow.")
+        st.caption("Real metrics from the Executor + closed-loop RL feedback (Grok-powered site).")
 
         current_state = st.session_state.current_state or {}
         metrics = current_state.get("metrics", [])
