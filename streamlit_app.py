@@ -11,8 +11,12 @@ This file:
 This avoids CLI argument parsing and ensures the Streamlit page actually renders.
 """
 
+import os
 import sys
 from pathlib import Path
+
+# Prevent protobuf 4.x "Descriptors cannot be created directly" errors with ChromaDB (common on Streamlit Cloud / fresh installs)
+os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
 
 # Ensure local imports work when deployed on Streamlit Cloud or run from any cwd
 sys.path.insert(0, str(Path(__file__).parent))

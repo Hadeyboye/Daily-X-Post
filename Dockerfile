@@ -59,7 +59,9 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     STREAMLIT_SERVER_PORT=8501 \
     STREAMLIT_SERVER_ADDRESS=0.0.0.0 \
-    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
+    # Prevent protobuf 4.x descriptor errors with ChromaDB on Cloud / containers
+    PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 
 # Expose Streamlit + optional FastAPI later
 EXPOSE 8501

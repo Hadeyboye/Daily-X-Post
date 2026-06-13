@@ -18,6 +18,9 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+# Belt-and-suspenders: prevent protobuf 4.x descriptor errors even if a transitive dep pulls in protobuf 4
+os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
+
 import chromadb
 import structlog
 from chromadb.config import Settings

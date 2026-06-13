@@ -19,6 +19,7 @@ pandas>=2.2.0
 
 # Data & Storage
 chromadb>=0.5.5
+protobuf>=3.19.0,<4.0  # Pin to avoid protobuf 4.x descriptor conflicts with Chroma/gRPC (common "Descriptors cannot be created directly" error)
 python-dotenv>=1.0.1
 pyyaml>=6.0.2
 apscheduler>=3.10.4

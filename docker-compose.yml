@@ -19,6 +19,8 @@ services:
       - PYTHONPATH=/app
       - NOVITA_API_KEY=${NOVITA_API_KEY}
       - X_ACCESS_TOKEN=${X_ACCESS_TOKEN}
+      # Prevent protobuf 4.x descriptor errors with ChromaDB
+      - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
       # Add any sandbox GPU flags if needed:
       # - NVIDIA_VISIBLE_DEVICES=all
     # For Novita Sandbox GPU support (uncomment if your sandbox exposes):

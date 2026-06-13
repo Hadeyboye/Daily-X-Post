@@ -27,6 +27,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+# Prevent protobuf 4.x "Descriptors cannot be created directly" errors with ChromaDB (common on fresh installs / Streamlit Cloud)
+os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
+
 import structlog
 import yaml
 from dotenv import load_dotenv
