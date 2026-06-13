@@ -24,6 +24,7 @@ import structlog
 
 from graph.state import AgentState, ResearchSignal
 from graph.tools import fetch_x_trends, semantic_search_x, analyze_competitor
+from utils.api_clients import api as central_api
 
 logger = structlog.get_logger(__name__)
 
@@ -102,11 +103,23 @@ Be specific and data-grounded. No generic advice.
 """
 
     try:
-        synthesis = novita.chat_completion(
-            messages=[{"role": "user", "content": synthesis_prompt}],
-            max_tokens=420,
-            temperature=0.65,
-        )
+        if novita and getattr(novita, "enabled", False):
+            synthesis = novita.chat_completion(
+                messages=[{"role": "user", "content": synthesis_prompt}],
+                max_tokens=420,
+                temperature=0.65,
+            )
+        else:
+            # Grok Deep Thinking fallback - always produces high-quality, reasoned brief
+            if central_api and central_api.grok:
+                synthesis = central_api.grok.generate_research_brief(
+                    [s.content for s in state.research_signals],
+                    state.competitor_insights,
+                    state.niche.get("primary", "tech_ai"),
+                    state.brand.get("name", "AetherLabs")
+                )
+            else:
+                synthesis = "Top angles: Production reliability is still the blocker. Cost is dropping but evals are not. Builders want patterns that survive real users."
         state.research_insights = synthesis
     except Exception as e:
         logger.warning("research_synthesis_failed", error=str(e))

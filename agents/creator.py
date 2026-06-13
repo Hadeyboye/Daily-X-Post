@@ -25,7 +25,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from graph.state import AgentState, ContentDraft, PostFormat
 from utils.safety import SafetyFilter
-from utils.api_clients import api as api_client
+from utils.api_clients import api
 
 logger = structlog.get_logger(__name__)
 

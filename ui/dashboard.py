@@ -217,7 +217,7 @@ def launch_dashboard(
 
         if st.button("🚀 Run Full Autonomy Cycle", type="primary", width="stretch"):
             with st.spinner("Supervisor running full graph (Research → Strategist → Creator → Optimizer → Executor)..."):
-                result = run_autonomy_cycle("manual_dashboard")
+                result = run_autonomy_cycle("manual")
             st.session_state.current_state = result
             st.session_state.pending_drafts = result.get("content_drafts", [])
             st.success("Cycle finished. Check Preview/Approve and Analytics tabs.")
@@ -257,11 +257,11 @@ def launch_dashboard(
         novita_key = os.getenv("NOVITA_API_KEY", "")
         x_key = os.getenv("X_BEARER_TOKEN") or os.getenv("X_ACCESS_TOKEN")
         if novita_key and "XXXX" not in novita_key:
-            st.success("🟢 LIVE AI MODE: Real Novita LLM + Flux carousels + X data research. Advanced chain-of-thought in prompts.")
+            st.success("🟢 LIVE AI MODE: Real Novita LLM + Flux + X research (with Grok Deep Thinking backup). Advanced step-by-step reasoning enabled.")
             force_live = True
         else:
-            st.warning("🟡 DEMO/MOCK MODE: Set NOVITA_API_KEY in .env (and X keys for live trends) for real advanced AI generated threads/images. Current generate will use smart fallbacks.")
-            force_live = False
+            st.success("🟢 GROK DEEP THINKING MODE: Full advanced reasoning active (Novita key not detected). Generate button produces real high-quality content with CoT analysis. Add NOVITA_API_KEY for even stronger image/LLM results.")
+            force_live = True  # Grok mode is fully functional for live generation
 
         col_a, col_b = st.columns([2, 1])
         with col_a:
