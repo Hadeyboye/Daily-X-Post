@@ -184,9 +184,9 @@ def launch_dashboard(
             st.markdown("**The 2026 Autonomous AI Content CMO** — Research • Strategize • Create (multimodal) • Optimize with RL • Schedule & Post • Learn continuously.")
             st.caption("LangGraph • Novita AI • Real-time X signals • Self-improving • Minimal human oversight")
         with colh2:
-            if st.button("🚀 LOAD FULL DEMO (Instant Live Experience)", type="primary", use_container_width=True):
+            if st.button("🚀 LOAD FULL DEMO (Instant Live Experience)", type="primary", width="stretch"):
                 seed_demo_data()
-            if st.button("Clear Demo & Reset", use_container_width=True):
+            if st.button("Clear Demo & Reset", width="stretch"):
                 st.session_state.current_state = None
                 st.session_state.pending_drafts = []
                 st.session_state.demo_mode = False
@@ -215,14 +215,14 @@ def launch_dashboard(
         env = config["platform"]["environment"]
         st.write(f"Env: `{env}`")
 
-        if st.button("🚀 Run Full Autonomy Cycle", type="primary", use_container_width=True):
+        if st.button("🚀 Run Full Autonomy Cycle", type="primary", width="stretch"):
             with st.spinner("Supervisor running full graph (Research → Strategist → Creator → Optimizer → Executor)..."):
                 result = run_autonomy_cycle("manual_dashboard")
             st.session_state.current_state = result
             st.session_state.pending_drafts = result.get("content_drafts", [])
             st.success("Cycle finished. Check Preview/Approve and Analytics tabs.")
 
-        if st.button("▶️ Start Background Scheduler (true autonomy)", use_container_width=True):
+        if st.button("▶️ Start Background Scheduler (true autonomy)", width="stretch"):
             start_scheduler()
             st.success("Autonomy scheduler started. See terminal for logs.")
 
@@ -282,7 +282,7 @@ def launch_dashboard(
         c1, c2 = st.columns(2)
         with c1:
             button_label = "🚀 Generate LIVE with Advanced AI (Real Novita + X Research)" if force_live else "Generate with Full Agent Graph (smart fallback)"
-            if st.button(button_label, type="primary", use_container_width=True):
+            if st.button(button_label, type="primary", width="stretch"):
                 with st.spinner("Running full LangGraph: Research (live X) → Strategist → Creator (Novita LLM with step-by-step thinking + Flux images) → Optimizer..."):
                     init_state = create_initial_state(config, trigger="manual", brand=config["brand"], niche=config["niche"])
                     # Inject user topic for real AI to focus on (live content gen)
@@ -300,7 +300,7 @@ def launch_dashboard(
                 st.success(f"✅ Generated {len(st.session_state.pending_drafts)} REAL AI-optimized multimodal drafts with advanced thinking. See Preview/Approve tab for live images/threads.")
 
         with c2:
-            if st.button("✨ Load Sample Data (Demo only, no keys needed)", use_container_width=True):
+            if st.button("✨ Load Sample Data (Demo only, no keys needed)", width="stretch"):
                 seed_demo_data()
                 st.rerun()
 

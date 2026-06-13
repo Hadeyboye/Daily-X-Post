@@ -98,7 +98,7 @@ def render_metrics_chart(metrics: List[Dict[str, Any]]) -> None:
     pdf = pd.DataFrame(df)
 
     fig = px.line(pdf, x="date", y=["engagements", "impressions"], title="Engagement & Reach Over Time")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     col1, col2 = st.columns(2)
     with col1:
